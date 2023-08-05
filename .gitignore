@@ -17,5 +17,3 @@ yarn-error.log
 /.idea
 /.vscode
 .DS_Store
-/public/key.txt
-/config/services.php
