@@ -13,8 +13,8 @@ return new class extends Migration
     {
         Schema::create('votes', function (Blueprint $table) {
             $table->id();
-            $table->foreignId("post_id")->constrained();
-            $table->string("domain");
+            $table->foreignId('post_id')->constrained();
+            $table->string('domain');
             $table->timestamps();
         });
     }

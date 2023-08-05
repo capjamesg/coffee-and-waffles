@@ -18,6 +18,5 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
 
-
 // webmention post
 Route::post('/webmention', [\App\Http\Controllers\PostController::class, 'receiveWebmention']);
