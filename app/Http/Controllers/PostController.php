@@ -2,46 +2,58 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Comment;
+use App\Models\Post;
+use App\Models\Vote;
+use Auth;
+use DOMDocument;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
+use Str;
 
 class PostController extends Controller
 {
-    public function list() {
+    public function list()
+    {
         // order by vote count, get comment count too
-        $posts_votes_comments = \App\Models\Post::withCount(['votes', 'comments'])->orderBy('votes_count', 'desc')->get();
+        $posts_votes_comments = Post::withCount(['votes', 'comments'])->orderBy('votes_count', 'desc')->get();
+
         return view('index', [
             'posts' => $posts_votes_comments,
-            'postsByUser' => false
+            'postsByUser' => false,
         ]);
     }
 
-    public function newest() {
+    public function newest()
+    {
         // get posts w/ vote count, ordered by created_at
-        $posts_votes_comments = \App\Models\Post::withCount(['votes', 'comments'])->orderBy('created_at', 'desc')->get();
+        $posts_votes_comments = Post::withCount(['votes', 'comments'])->orderBy('created_at', 'desc')->get();
+
         return view('index', [
             'posts' => $posts_votes_comments,
-            'postsByUser' => false
+            'postsByUser' => false,
         ]);
     }
 
-    public function create () {
+    public function create()
+    {
         return view('create_post');
     }
 
-    public function receiveWebmention (Request $request) {
+    public function receiveWebmention(Request $request)
+    {
         $post_body = $request->json('post');
         // $title = $post['name'];
         // if wm-property is like-of, create upvote from user 1
         if ($post_body['wm-property'] == 'like-of') {
-            $post = new \App\Models\Post;
+            $post = new Post;
             $post->title = $title;
             $post->syndicated_post_url = $post_body['url'];
             $post->user_id = 1;
             $post->slug = \Str::slug($title);
             $post->save();
 
-            $vote = new \App\Models\Vote;
+            $vote = new Vote();
             $vote->user_id = 1;
             $vote->post_id = $post->id;
             $vote->save();
@@ -51,8 +63,8 @@ class PostController extends Controller
 
         // if u-reply-to, create content
         if ($post_body['wm-property'] == 'in-reply-to') {
-            $comment = new \App\Models\Comment;
-            $comment->post_id = \App\Models\Post::where('syndicated_post_url', $request->json('wm-target'))->first()->id;
+            $comment = new Comment();
+            $comment->post_id = Post::where('syndicated_post_url', $request->json('wm-target'))->first()->id;
             $comment->user_id = 1;
             $comment->content = $request->json('content');
             $comment->save();
@@ -60,21 +72,21 @@ class PostController extends Controller
             return response('OK', 200);
         }
 
-        # if not bookmark of set, return 400
-        if (!isset($post_body["bookmark-of"])) {
+        // if not bookmark of set, return 400
+        if (! isset($post_body['bookmark-of'])) {
             return response('Bad Request', 400);
         }
 
-        $syndicated_post_url = $post_body["bookmark-of"];
+        $syndicated_post_url = $post_body['bookmark-of'];
 
-        $post = new \App\Models\Post;
+        $post = new Post;
 
         // if name key doesn't exist, get
-        if (!isset($post_body->name)) {
+        if (! isset($post_body->name)) {
             $response = Http::get($syndicated_post_url);
             $html = $response->getBody()->getContents();
 
-            $dom = new \DOMDocument();
+            $dom = new DOMDocument();
             libxml_use_internal_errors(true); // Disable HTML5 validation errors
             $dom->loadHTML($html);
             libxml_clear_errors();
@@ -89,7 +101,7 @@ class PostController extends Controller
         $post->syndicated_post_url = $syndicated_post_url;
 
         // if user not signed in
-        if (!\Auth::user()) {
+        if (! Auth::user()) {
             // use "webmention" reserved user
             $post->user_id = 1;
         } else {
@@ -97,51 +109,56 @@ class PostController extends Controller
             $post->user_id = \Auth::user()->id;
         }
 
-        $post->slug = \Str::slug($title);
-        $post->content = "";
+        $post->slug = Str::slug($title);
+        $post->content = '';
         $post->save();
 
         return response('OK', 200);
     }
 
     // post method for creating a post
-    public function store(Request $request) {
+    public function store(Request $request)
+    {
         $request->validate([
             'title' => 'nullable',
             'syndicated_post_url' => 'required',
-            'content' => 'nullable'
+            'content' => 'nullable',
         ]);
 
         // if no title, load HTML of syndicated_post_url
-        if (!$request->title) {
+        if (! $request->title) {
             $webpage = Http::get($request->syndicated_post_url)->getBody()->getContents();
             $title = $webpage->find('title');
             $request->title = $title[0]->text();
         }
 
-        $post = new \App\Models\Post;
+        $post = new Post();
         $post->title = $request->title;
         // set user_id
-        $post->user_id = \Auth::user()->id;
+        $post->user_id = Auth::user()->id;
         $post->syndicated_post_url = $request->syndicated_post_url;
         $post->content = $request->content;
-        $post->slug = \Str::slug($request->title);
+        $post->slug = Str::slug($request->title);
         $post->save();
-        return redirect('/post/' . $post->slug);
+
+        return redirect('/post/'.$post->slug);
     }
 
-    public function show(string $slug) {
-        $comments = \App\Models\Comment::where('post_id', \App\Models\Post::where('slug', $slug)->first()->id)->get();
+    public function show(string $slug)
+    {
+        $comments = Comment::where('post_id', Post::where('slug', $slug)->first()->id)->get();
+
         return view('post', [
-            'post' => \App\Models\Post::withCount('votes')->where('slug', $slug)->first(),
-            'comments' => $comments
+            'post' => Post::withCount('votes')->where('slug', $slug)->first(),
+            'comments' => $comments,
         ]);
     }
 
-    public function delete (string $slug) {
-        if (\Auth::user()->is_admin) {
+    public function delete(string $slug)
+    {
+        if (Auth::user()->is_admin) {
             // delete post
-            $post = \App\Models\Post::where('slug', $slug)->first();
+            $post = Post::where('slug', $slug)->first();
             $post->delete();
         }
 
