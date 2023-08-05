@@ -10,6 +10,19 @@ class UserController extends Controller
         return view('register');
     }
 
+    public function getPosts(Request $request) {
+        // get posts from user
+        $posts_and_votes = \App\Models\Post::withCount('votes')->where('user_id', \Auth::user()->id)->orderBy('created_at', 'desc')->get();
+
+        $user = \App\Models\User::where('name', $request->id)->first();
+
+        return view('index', [
+            'posts' => $posts_and_votes,
+            'user' => $user,
+            'postsByUser' => true
+        ]);
+    }
+
     public function store(Request $request) {
         $request->validate([
             'name' => 'required',
@@ -23,5 +36,10 @@ class UserController extends Controller
         $user->password = \Hash::make($request->password);
         $user->save();
         return redirect('/login');
+    }
+
+    public function logout() {
+        \Auth::logout();
+        return redirect('/');
     }
 }

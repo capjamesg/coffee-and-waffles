@@ -3,7 +3,18 @@
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Document</title>
+        <title>@yield("title") - Waffles and Coffee</title>
+
+        <meta name="description" content="@yield('description')">
+        
+        <meta property="og:title" content="@yield('title') - Waffles and Coffee">
+        <meta property="og:description" content="@yield('description')">
+        <meta property="og:type" content="website">
+
+        <meta name="og:image" content="https://screenshots.jamesg.blog/?url={{ urlencode(Request::url()) }}&width=1200&height=630&full_page=true&device_scale=2&format=png&cache_seconds=86400">
+
+        <link rel="manifest" href="/manifest.json">
+        
         <style>
             :root {
                 --var-link-color: darkgreen;
@@ -73,19 +84,37 @@
                 margin-top: 3em;
                 text-align: center;
             }
+            #content {
+                background-color: white;
+                padding: 10px;
+                border-radius: 5px;
+                margin-top: 10px;
+                margin-bottom: 10px;
+            }
+            label {
+                display: block;
+                margin-bottom: 5px;
+                font-weight: bold;
+            }
+            section {
+                margin-top: 10px;
+                margin-bottom: 10px;
+            }
+            nav ul:last-child {
+                margin-left: auto;
+            }
         </style>
     </head>
     <body>
         <nav>
             <ul>
                 <li><a href="/">Coffee and Waffles</a></li>
-                <li><a href="/">Trending</a></li>
-                <li><a href="/">Newest</a></li>
-                <li><a href="/">Submit</a></li>
+                <li><a href="/new">Newest</a></li>
+                <li><a href="/post">Submit</a></li>
             </ul>
             <ul>
                 @if (Auth::check())
-                    <li><a href="{{ Auth::user()->domain }} ">{{ Auth::user()->name }}</a></li>
+                    <li><a href="/user/{{ Auth::user()->name }}">{{ Auth::user()->name }}</a></li>
                     <li><a href="/logout">Sign Out</a></li>
                 @else
                     <li><a href="/login">Sign In</a></li>
@@ -96,7 +125,7 @@
             @yield('content')
         </main>
         <footer>
-            <p>Made with love and waffles by <a href="https://jamesg.blog">capjamesg</a>.</p>
+            <p>Made with ❤️ and 🧇 by <a href="https://jamesg.blog">capjamesg</a>.</p>
         </footer>
     </body>
 </html>

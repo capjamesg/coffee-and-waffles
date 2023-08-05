@@ -11,10 +11,8 @@ return new class extends Migration
      */
     public function up(): void
     {
-        // remove "domain" and replace with post_id
-        Schema::table('votes', function (Blueprint $table) {
-            $table->dropColumn("domain");
-            // $table->foreignId("post_id")->constrained();
+        Schema::table('users', function (Blueprint $table) {
+            $table->boolean("is_admin")->default(false);
         });
     }
 
@@ -23,6 +21,8 @@ return new class extends Migration
      */
     public function down(): void
     {
-        //
+        Schema::table('users', function (Blueprint $table) {
+            //
+        });
     }
 };
