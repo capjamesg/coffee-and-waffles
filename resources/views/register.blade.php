@@ -1,5 +1,5 @@
 @extends('layouts.main')
-
+@section('content')
 <form method="POST" action="/signup">
     @csrf <!-- {{ csrf_field() }} -->
     <label for="name">Username:</label>
@@ -10,3 +10,4 @@
     <input for="password" type="password" name="password" id="password">
     <button type="submit">Register</button>
 </form>
+@endsection
