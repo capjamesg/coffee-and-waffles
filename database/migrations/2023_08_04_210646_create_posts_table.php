@@ -13,11 +13,11 @@ return new class extends Migration
     {
         Schema::create('posts', function (Blueprint $table) {
             $table->id();
-            $table->string("domain", 200);
-            $table->string("slug", 200);
-            $table->string("syndicated_post_url", 200);
-            $table->string("title", 200);
-            $table->text("content");
+            $table->string('domain', 200);
+            $table->string('slug', 200);
+            $table->string('syndicated_post_url', 200);
+            $table->string('title', 200);
+            $table->text('content');
             $table->timestamps();
         });
     }

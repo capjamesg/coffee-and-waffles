@@ -13,7 +13,7 @@ return new class extends Migration
     {
         // remove "domain" and replace with post_id
         Schema::table('votes', function (Blueprint $table) {
-            $table->dropColumn("domain");
+            $table->dropColumn('domain');
             // $table->foreignId("post_id")->constrained();
         });
     }

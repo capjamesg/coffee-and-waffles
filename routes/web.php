@@ -37,18 +37,18 @@ Route::get('/user/{id}', [\App\Http\Controllers\UserController::class, 'getPosts
 
 // social auth
 use Laravel\Socialite\Facades\Socialite;
- 
+
 Route::get('/auth/redirect', function () {
     return Socialite::driver('github')->redirect();
 });
- 
+
 Route::get('/auth/callback', function () {
     $user = Socialite::driver('github')->user();
- 
+
     // if user doesn't exist, create one
     $user_model = \App\Models\User::where('email', $user->email)->first();
 
-    if (!$user_model) {
+    if (! $user_model) {
         $user_model = new \App\Models\User;
         $user_model->name = $user->name;
         $user_model->email = $user->email;
